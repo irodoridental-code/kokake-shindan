@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お子さまの声かけタイプ診断</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF9F0;
+    --cream2:#FBF2E4;
+    --ink:#463C42;
+    --sub:#948A8E;
+    --coral:#E8896F;
+    --coral-dark:#D06B50;
+    --line:#EFE2D2;
+
+    --blue:#3E7A93;      --blue-light:#E3EEF2;
+    --red:#B34B3C;       --red-light:#F7E6DF;
+    --green:#78823C;     --green-light:#EEF0DA;
+    --wine:#96366A;      --wine-light:#F3E1EC;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 10% 6%, var(--cream2) 0%, transparent 45%),
+      radial-gradient(circle at 90% 94%, var(--cream2) 0%, transparent 45%),
+      var(--cream);
+    color:var(--ink);
+    font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:"M PLUS Rounded 1c","Zen Maru Gothic",sans-serif; }
+
+  .stage{ width:100%; max-width:560px; position:relative; }
+  .card{
+    background:#fff;
+    border-radius:26px;
+    padding:34px 26px 28px;
+    box-shadow:0 18px 40px -18px rgba(70,60,66,0.22), 0 2px 8px rgba(70,60,66,0.06);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block; animation:riseIn .45s cubic-bezier(.2,.7,.3,1);}
+  @keyframes riseIn{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- start ---------- */
+  .badge-row{ display:flex; justify-content:center; gap:12px; margin-bottom:20px; }
+  .badge-row .icon{ width:38px; height:38px; }
+
+  .eyebrow{
+    display:inline-block; font-size:12px; letter-spacing:.12em; color:var(--coral-dark);
+    background:var(--red-light); padding:5px 13px; border-radius:999px; font-weight:700; margin-bottom:14px;
+  }
+  h1.title{ font-size:24px; font-weight:800; line-height:1.55; margin:0 0 12px; }
+  .lead{ font-size:14px; line-height:1.9; color:var(--sub); margin:0 0 20px; }
+  .meta-row{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+  .meta-pill{ font-size:11.5px; color:var(--ink); background:var(--cream2); border:1px solid var(--line); padding:6px 11px; border-radius:999px; }
+
+  button{ font-family:inherit; cursor:pointer; }
+  .btn-primary{
+    width:100%; background:var(--coral); color:#fff; border:none; border-radius:17px; padding:16px;
+    font-size:15.5px; font-weight:700; box-shadow:0 10px 22px -8px rgba(232,137,111,0.6);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); background:var(--coral-dark); }
+  .btn-primary:active{ transform:translateY(0); }
+
+  /* ---------- quiz ---------- */
+  .progress-wrap{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .progress-track{ flex:1; height:7px; background:var(--cream2); border-radius:999px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--coral), var(--wine)); border-radius:999px; transition:width .45s cubic-bezier(.4,.2,.2,1); }
+  .progress-count{ font-size:11.5px; font-weight:700; color:var(--sub); white-space:nowrap; font-variant-numeric:tabular-nums; }
+
+  .q-index{ font-size:12px; font-weight:700; color:var(--coral-dark); letter-spacing:.06em; margin-bottom:8px; }
+  .q-text{ font-size:18px; font-weight:700; line-height:1.65; margin:0 0 24px; min-height:82px; }
+
+  .options{ display:flex; flex-direction:column; gap:9px; }
+  .opt-btn{
+    text-align:left; background:var(--cream2); border:1.5px solid transparent; border-radius:15px;
+    padding:13px 15px; font-size:14px; font-weight:500; color:var(--ink);
+    display:flex; align-items:center; gap:11px; transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .opt-btn:hover{ border-color:var(--coral); background:#fff; }
+  .opt-btn:active{ transform:scale(.98); }
+  .opt-dot{ width:15px; height:15px; border-radius:50%; border:2px solid var(--coral); flex:none; }
+  .opt-btn[data-val="1"] .opt-dot{ background:transparent; }
+  .opt-btn[data-val="2"] .opt-dot{ background:linear-gradient(90deg, var(--coral) 50%, transparent 50%); }
+  .opt-btn[data-val="3"] .opt-dot{ background:linear-gradient(90deg, var(--coral) 80%, transparent 50%); }
+  .opt-btn[data-val="4"] .opt-dot{ background:var(--coral); }
+
+  .back-link{ display:inline-flex; align-items:center; gap:4px; margin-top:20px; font-size:12px; color:var(--sub); background:none; border:none; padding:4px 0; }
+  .back-link:hover{ color:var(--coral-dark); }
+
+  /* ---------- result ---------- */
+  .result-hero{ text-align:center; padding-bottom:6px; }
+  .result-icon{ width:84px; height:84px; margin:0 auto 12px; }
+  .result-eyebrow{ font-size:12px; color:var(--sub); letter-spacing:.1em; margin-bottom:6px; }
+  .result-name{ font-size:25px; font-weight:800; margin:0 0 14px; }
+  .result-desc{ font-size:14px; line-height:1.95; color:var(--ink); text-align:left; border-radius:15px; padding:15px 17px; margin-bottom:10px; }
+  .result-sub{ font-size:13px; line-height:1.9; color:var(--ink); text-align:left; background:var(--cream2); border-radius:15px; padding:14px 16px; margin-bottom:18px; }
+
+  .score-grid{ display:flex; gap:8px; margin-bottom:20px; }
+  .score-chip{ flex:1; background:var(--cream2); border-radius:13px; padding:10px 8px; text-align:center; }
+  .score-chip .num{ font-size:18px; font-weight:800; font-family:"M PLUS Rounded 1c"; }
+  .score-chip .lbl{ font-size:10px; color:var(--sub); margin-top:2px; }
+  .score-chip .tag{ display:inline-block; margin-top:4px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; }
+
+  .section-label{ font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:7px; margin:20px 0 10px; }
+  .section-label .dot{ width:8px; height:8px; border-radius:50%; }
+  ul.tips{ margin:0 0 4px; padding-left:0; list-style:none; }
+  ul.tips li{ font-size:13.5px; line-height:1.85; padding-left:20px; position:relative; margin-bottom:9px; }
+  ul.tips.good li::before{ content:"◎"; position:absolute; left:0; top:0; font-size:12px; }
+  ul.tips.bad li{ padding-left:0; }
+  ul.tips.bad li .bad-line{ display:flex; gap:8px; align-items:flex-start; }
+  ul.tips.bad li .bad-mark{ flex:none; font-size:12px; color:var(--sub); }
+  ul.tips.bad li .bad-why{ display:block; font-size:12px; color:var(--sub); margin:3px 0 0 20px; line-height:1.7; }
+
+  .persist-wrap{ margin-top:22px; }
+  .persist-cards{ display:flex; flex-direction:column; gap:10px; }
+  .persist-card{ border-radius:15px; padding:14px 16px; border:1.5px solid var(--line); background:#fff; opacity:.55; transition:opacity .2s ease, border-color .2s ease, transform .2s ease; }
+  .persist-card.active{ opacity:1; border-color:var(--coral); transform:scale(1.01); box-shadow:0 8px 20px -12px rgba(232,137,111,0.5); }
+  .persist-card .p-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .persist-card .p-title{ font-size:13px; font-weight:700; }
+  .persist-card .p-badge{ font-size:10px; font-weight:700; color:#fff; background:var(--coral); padding:2px 9px; border-radius:999px; visibility:hidden; }
+  .persist-card.active .p-badge{ visibility:visible; }
+  .persist-card .p-text{ font-size:12.5px; line-height:1.85; color:var(--ink); }
+  .persist-card:not(.active) .p-text{ color:var(--sub); }
+
+  .note{ margin-top:22px; font-size:11px; line-height:1.8; color:var(--sub); text-align:center; }
+
+  @media (max-width:400px){
+    .card{ padding:26px 18px 22px; border-radius:20px; }
+    h1.title{ font-size:21px; }
+    .q-text{ font-size:16.5px; min-height:76px; }
+  }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="card">
+
+    <!-- ============ START ============ -->
+    <section class="screen active" id="screen-start">
+      <div class="badge-row" id="badge-row"></div>
+      <span class="eyebrow">マウスピーストレーニング サポート</span>
+      <h1 class="title">お子さまの声かけタイプ診断</h1>
+      <p class="lead">
+        矯正治療を進めるうえで、お子さまに合った声かけ・関わり方を知るための診断です。12個の質問に、日頃のお子さまの様子を思い浮かべながらお答えください。
+      </p>
+      <div class="meta-row">
+        <span class="meta-pill">📋 質問数：12問</span>
+        <span class="meta-pill">⏱ 所要時間：約2分</span>
+        <span class="meta-pill">🎯 結果：4タイプ</span>
+      </div>
+      <button class="btn-primary" onclick="startQuiz()">診断をはじめる</button>
+      <p class="note">4段階（あまり当てはまらない〜とても当てはまる）でお答えください。</p>
+    </section>
+
+    <!-- ============ QUIZ ============ -->
+    <section class="screen" id="screen-quiz">
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <span class="progress-count" id="progress-count">1 / 12</span>
+      </div>
+      <div class="q-index" id="q-index">QUESTION 01</div>
+      <p class="q-text" id="q-text"></p>
+      <div class="options" id="options"></div>
+      <button class="back-link" id="back-btn" onclick="goBack()">← ひとつ前の質問へ</button>
+    </section>
+
+    <!-- ============ RESULT ============ -->
+    <section class="screen" id="screen-result">
+      <div class="result-hero">
+        <div class="result-icon" id="result-icon"></div>
+        <div class="result-eyebrow">お子さまの声かけタイプは</div>
+        <h2 class="result-name" id="result-name"></h2>
+      </div>
+
+      <p class="result-desc" id="result-desc"></p>
+      <p class="result-sub" id="result-sub"></p>
+
+      <div class="score-grid" id="score-grid"></div>
+
+      <div class="section-label"><span class="dot" id="dot-good"></span>こんな声かけが効きます</div>
+      <ul class="tips good" id="tips-good"></ul>
+
+      <div class="section-label"><span class="dot" id="dot-bad"></span>こんな声かけは避けましょう</div>
+      <ul class="tips bad" id="tips-bad"></ul>
+
+      <div class="persist-wrap">
+        <div class="section-label"><span class="dot" id="dot-persist"></span>トレーニングを続けるための一言アドバイス</div>
+        <div class="persist-cards">
+          <div class="persist-card" id="persist-good">
+            <div class="p-head">
+              <span class="p-title">コツコツ続けやすいお子さまの場合</span>
+              <span class="p-badge">診断結果</span>
+            </div>
+            <div class="p-text" id="persist-good-text"></div>
+          </div>
+          <div class="persist-card" id="persist-bad">
+            <div class="p-head">
+              <span class="p-title">飽きやすさがあるお子さまの場合</span>
+              <span class="p-badge">診断結果</span>
+            </div>
+            <div class="p-text" id="persist-bad-text"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" style="margin-top:26px;" onclick="restartQuiz()">もう一度診断する</button>
+      <p class="note">※本診断は院内の問診票をもとにしたセルフチェックです。お子さまの様子は日によっても変わります。ひとつの目安として、日々の声かけにお役立てください。</p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const TYPES = {
+  kirakira:{
+    name:"キラキラチャレンジャー",
+    color:"var(--blue)", colorHex:"#3E7A93", light:"var(--blue-light)",
+    desc:"人前で発表したり、できたことを誰かに見せたりするのが好き。新しい場面でも物怖じせず、不安より「やってみたい」という気持ちが先に立つお子さまです。",
+    sub:"このタイプのお子さんは、できたことを見てもらえたり認めてもらえたりすることで、自然と前向きになれることが多いようです。一方で、反応が薄かったり、できないことを指摘されたりすると、やる気が下がりやすくなることがあります。",
+    good:[
+      "「できたね！すごいじゃん、見せて見せて！」",
+      "「今日はどこまでできるか、ちょっと挑戦してみる？」",
+      "「先生にも教えてあげようか」",
+      "「カレンダーに今日もシール貼ろう！」"
+    ],
+    bad:[
+      {line:"「いつまでも下手だね」", why:"比較・否定の言葉は、得意な「やればできる」感覚を一気に削いでしまいます"},
+      {line:"黙って見ているだけ（反応を示さない）", why:"注目・反応を求めるタイプのため、無反応はやる気の低下につながりやすいです"}
+    ],
+    persistGood:"もともとコツコツ続けやすいタイプです。やり方を細かく管理しすぎず、「続いていること」自体を時々言葉にして認めてあげると十分です。",
+    persistBad:"飽きやすい傾向がある場合は、シールやカレンダーで「できた！」を可視化し、見せる機会（報告タイム）を作ると継続しやすくなります。"
+  },
+  nikkori:{
+    name:"にっこりがんばり屋さん",
+    color:"var(--red)", colorHex:"#B34B3C", light:"var(--red-light)",
+    desc:"人と一緒にいるのは好きだけれど、初めてのことや失敗には不安を感じやすいお子さまです。安心できる環境があれば、人前でも積極的に頑張れます。",
+    sub:"このタイプのお子さんは、いつもと同じ流れで一緒に取り組むことで、安心して落ち着けることが多いようです。一方で、急かされたり、やり方を突然変えられたりすると、不安が強くなって取り組みにくくなることがあります。",
+    good:[
+      "「大丈夫、一緒にやろう。いつもの場所で着けようね」",
+      "「失敗しても全然OK。やってみたことがすごいよ」",
+      "「ママ（パパ）もそばにいるから、安心してね」",
+      "「できたね！頑張ったの、ちゃんと見てたよ」"
+    ],
+    bad:[
+      {line:"「早くやって、みんな待ってるよ」", why:"急かす言葉は不安を増幅させ、かえって動けなくなることがあります"},
+      {line:"「そんなの簡単でしょ」", why:"難しく感じている気持ちを否定すると、安心感が崩れてしまいます"}
+    ],
+    persistGood:"安心できれば継続しやすいタイプです。「いつも同じ時間・同じ流れ」で行うと安定し、習慣として定着しやすくなります。",
+    persistBad:"飽きやすさがある場合は、変化を急に大きくせず、「いつもの安心できるやり方」に小さな新しさ（キャラクターのシール等）を少しだけ加える工夫が効果的です。"
+  },
+  jikkuri:{
+    name:"じっくりマイペースさん",
+    color:"var(--green)", colorHex:"#78823C", light:"var(--green-light)",
+    desc:"一人でじっくり取り組むのが得意で、人前での称賛よりも自分自身で納得することを大事にするお子さまです。落ち着いて自分のペースで進めたいタイプです。",
+    sub:"このタイプのお子さんは、自分でやり方や順番を決めることで、納得して取り組めることが多いようです。一方で、細かく管理されたり、大げさに褒められたりすると、かえってやる気が下がることがあります。",
+    good:[
+      "「着ける前に、先にやりたいことやっておく？」",
+      "「今日はどうだった？自分で気づいたことある？」",
+      "「いつ着けるか、自分で決めていいよ」"
+    ],
+    bad:[
+      {line:"「みんなの前で発表してみよう！」", why:"人前でのアピールを強要されると、むしろ気持ちが引いてしまいます"},
+      {line:"過剰に褒めすぎる、大げさに反応する", why:"本人にとっては気恥ずかしく、逆にやる気が下がることがあります"}
+    ],
+    persistGood:"もともと一人でコツコツ続けやすいタイプです。声かけは最小限でよく、「気づいたら見守っている」という距離感が合います。",
+    persistBad:"飽きやすい場合は、本人の好きなテーマ（好きなキャラクターや色）を取り入れた記録方法を一緒に選んでもらうと、自分のペースを保ちながら継続しやすくなります。"
+  },
+  yukkuri:{
+    name:"ゆっくりしんちょうさん",
+    color:"var(--wine)", colorHex:"#96366A", light:"var(--wine-light)",
+    desc:"新しいことや変化に対して不安を感じやすく、一人で静かに取り組みたいお子さまです。プレッシャーを感じると動けなくなりやすいため、安心感を最優先にする関わりが大切です。",
+    sub:"このタイプのお子さんは、いつ・どんな風にやるかを少し選べることで、気持ちが楽になることが多いようです。一方で、「みんなはできてるよ」などの比較や、強いプレッシャーをかけられると、動けなくなってしまうことがあります。",
+    good:[
+      "「今日はいつ着ける？ご飯の後とお風呂の後、どっちがいい？」",
+      "「短い時間からでいいよ、まずは少しだけ頑張ってみよう」",
+      "「つらいところがあったら教えてね、一緒にやり方を考えよう」"
+    ],
+    bad:[
+      {line:"「みんなはできてるよ、頑張って」", why:"比較される言葉は強い不安につながり、さらに動けなくなる原因になります"},
+      {line:"「やりたくない時はやらなくていいよ」", why:"安心させる意図でも、装着自体をやめる選択肢を与えると治療が進まなくなります。「やる」は前提に、「いつ・どう」だけを選ばせましょう"}
+    ],
+    persistGood:"安心できる環境があれば、実はコツコツ続けやすいタイプです。「着けるのは当たり前のこと」として、いつも同じ手順・同じタイミングを守ると、迷わず続けられます。",
+    persistBad:"飽きやすさがある場合も、「着けるかどうか」は揺らがせず、着け方や順番など小さな範囲で本人に選ばせると、納得感を持って続けやすくなります。"
+  }
+};
+
+const QUESTIONS = [
+  {text:"知らない人やお友達の前でも、自分から話しかけることが多い", axis:1},
+  {text:"「できたこと」を人に見せたり、報告したりするのが好き", axis:1},
+  {text:"みんなと一緒に何かをするのが好き（一人でじっくりより）", axis:1},
+  {text:"新しい場所や初めての場面でも、すぐに楽しめる方だ", axis:1},
+  {text:"初めてのことに対して、不安や緊張を感じやすい", axis:2},
+  {text:"失敗したり注意されたりすると、気持ちが長く残りやすい", axis:2},
+  {text:"できないことがあると、自分を責めたり落ち込んだりしやすい", axis:2},
+  {text:"新しい習慣やルールが変わることに、抵抗を感じやすい", axis:2},
+  {text:"毎日同じことを続ける（歯磨き、宿題など）のが、比較的得意な方だ", axis:3},
+  {text:"一度始めたことは、最後までやり遂げようとする", axis:3},
+  {text:"決められたルールや約束を、きちんと守ろうとする", axis:3},
+  {text:"同じやり方が続くと、飽きてしまうことが多い", axis:3, reverse:true}
+];
+
+const SCALE = [
+  {v:1, label:"あまり当てはまらない"},
+  {v:2, label:"やや当てはまらない"},
+  {v:3, label:"やや当てはまる"},
+  {v:4, label:"とても当てはまる"}
+];
+
+/* ---------------- icons ---------------- */
+function typeIcon(key, color){
+  const icons = {
+    kirakira: `<path d="M50 15 L57 42 L85 50 L57 58 L50 85 L43 58 L15 50 L43 42 Z" fill="${color}"/>
+               <circle cx="78" cy="22" r="5" fill="${color}"/><circle cx="20" cy="76" r="4" fill="${color}"/>`,
+    nikkori: `<circle cx="50" cy="50" r="34" fill="${color}"/>
+              <circle cx="38" cy="44" r="4.5" fill="#fff"/><circle cx="62" cy="44" r="4.5" fill="#fff"/>
+              <path d="M35 58 Q50 72 65 58" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>`,
+    jikkuri: `<path d="M50 20 C65 20 78 33 78 50 C78 67 65 80 50 80 C55 68 55 55 42 50 C55 45 55 32 50 20 Z" fill="${color}"/>`,
+    yukkuri: `<ellipse cx="50" cy="58" rx="30" ry="18" fill="${color}"/>
+              <ellipse cx="34" cy="46" rx="14" ry="12" fill="${color}"/>
+              <ellipse cx="58" cy="40" rx="17" ry="14" fill="${color}"/>`
+  };
+  return `<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">${icons[key]}</svg>`;
+}
+
+(function initBadges(){
+  const row = document.getElementById("badge-row");
+  const order = ["kirakira","nikkori","jikkuri","yukkuri"];
+  order.forEach((key,i)=>{
+    const t = TYPES[key];
+    const div = document.createElement("div");
+    div.className = "icon";
+    div.style.animation = `riseIn .5s cubic-bezier(.34,1.56,.64,1) ${i*0.08}s both`;
+    div.innerHTML = typeIcon(key, t.colorHex);
+    row.appendChild(div);
+  });
+})();
+
+/* ---------------- state & flow ---------------- */
+let current = 0;
+const answers = new Array(QUESTIONS.length).fill(null);
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function startQuiz(){
+  current = 0; answers.fill(null);
+  showScreen("screen-quiz");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById("q-index").textContent = "QUESTION " + String(current+1).padStart(2,"0");
+  document.getElementById("q-text").textContent = q.text;
+  document.getElementById("progress-count").textContent = (current+1) + " / " + QUESTIONS.length;
+  document.getElementById("progress-fill").style.width = ((current/QUESTIONS.length)*100) + "%";
+  document.getElementById("back-btn").style.visibility = current === 0 ? "hidden" : "visible";
+
+  const optWrap = document.getElementById("options");
+  optWrap.innerHTML = "";
+  SCALE.forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.className = "opt-btn";
+    btn.setAttribute("data-val", opt.v);
+    btn.innerHTML = `<span class="opt-dot"></span><span>${opt.label}</span>`;
+    btn.onclick = ()=> selectAnswer(opt.v);
+    optWrap.appendChild(btn);
+  });
+}
+
+function selectAnswer(val){
+  answers[current] = val;
+  document.getElementById("progress-fill").style.width = (((current+1)/QUESTIONS.length)*100) + "%";
+  if(current < QUESTIONS.length - 1){
+    current++;
+    setTimeout(renderQuestion, 170);
+  } else {
+    setTimeout(showResult, 260);
+  }
+}
+
+function goBack(){
+  if(current === 0) return;
+  current--;
+  renderQuestion();
+}
+
+function computeScores(){
+  let s1=0, s2=0, s3=0;
+  QUESTIONS.forEach((q,i)=>{
+    const v = answers[i] || 0;
+    const val = q.reverse ? (5 - v) : v;
+    if(q.axis===1) s1 += val;
+    if(q.axis===2) s2 += val;
+    if(q.axis===3) s3 += val;
+  });
+  return {s1, s2, s3};
+}
+
+function showResult(){
+  const {s1, s2, s3} = computeScores();
+  const high1 = s1 >= 9, high2 = s2 >= 9, high3 = s3 >= 9;
+
+  let key;
+  if(high1 && !high2) key = "kirakira";
+  else if(high1 && high2) key = "nikkori";
+  else if(!high1 && !high2) key = "jikkuri";
+  else key = "yukkuri";
+
+  const t = TYPES[key];
+
+  document.getElementById("result-icon").innerHTML = typeIcon(key, t.colorHex);
+  document.getElementById("result-name").textContent = t.name;
+  document.getElementById("result-name").style.color = t.colorHex;
+  document.getElementById("result-desc").textContent = t.desc;
+  document.getElementById("result-desc").style.background = t.light;
+  document.getElementById("result-sub").textContent = t.sub;
+
+  document.getElementById("dot-good").style.background = t.colorHex;
+  document.getElementById("dot-bad").style.background = "#D8CFCF";
+  document.getElementById("dot-persist").style.background = t.colorHex;
+
+  const goodList = document.getElementById("tips-good");
+  goodList.innerHTML = "";
+  t.good.forEach(item=>{
+    const li = document.createElement("li");
+    li.textContent = item;
+    goodList.appendChild(li);
+  });
+
+  const badList = document.getElementById("tips-bad");
+  badList.innerHTML = "";
+  t.bad.forEach(item=>{
+    const li = document.createElement("li");
+    li.innerHTML = `<div class="bad-line"><span class="bad-mark">△</span><span>${item.line}</span></div><span class="bad-why">→ ${item.why}</span>`;
+    badList.appendChild(li);
+  });
+
+  document.getElementById("persist-good-text").textContent = t.persistGood;
+  document.getElementById("persist-bad-text").textContent = t.persistBad;
+  document.getElementById("persist-good").classList.toggle("active", high3);
+  document.getElementById("persist-bad").classList.toggle("active", !high3);
+
+  const grid = document.getElementById("score-grid");
+  grid.innerHTML = "";
+  const rows = [
+    {label:"スコア①外向性", val:s1, high:high1},
+    {label:"スコア②不安傾向", val:s2, high:high2},
+    {label:"スコア③継続力", val:s3, high:high3}
+  ];
+  rows.forEach(r=>{
+    const chip = document.createElement("div");
+    chip.className = "score-chip";
+    chip.innerHTML = `<div class="num" style="color:${t.colorHex}">${r.val}</div>
+      <div class="lbl">${r.label}</div>
+      <div class="tag" style="background:${t.light}; color:${t.colorHex}">${r.high ? "高い" : "低い"}</div>`;
+    grid.appendChild(chip);
+  });
+
+  showScreen("screen-result");
+}
+
+function restartQuiz(){ showScreen("screen-start"); }
+</script>
+</body>
+</html>
