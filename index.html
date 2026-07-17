@@ -40,7 +40,7 @@
     --wine:#96366A;      --wine-light:#F3E1EC;
   }
 
-  *{box-sizing:border-box;}
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{margin:0;padding:0;}
   body{
     background:
@@ -85,14 +85,31 @@
   .meta-row{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
   .meta-pill{ font-size:11.5px; color:var(--ink); background:var(--cream2); border:1px solid var(--line); padding:6px 11px; border-radius:999px; }
 
-  button{ font-family:inherit; cursor:pointer; }
+  button{
+    font-family:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation; outline:none; -webkit-user-select:none; user-select:none;
+  }
+  button::-moz-focus-inner{ border:0; }
   .btn-primary{
     width:100%; background:var(--coral); color:#fff; border:none; border-radius:17px; padding:16px;
     font-size:15.5px; font-weight:700; box-shadow:0 10px 22px -8px rgba(232,137,111,0.6);
     transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
   }
-  .btn-primary:hover{ transform:translateY(-2px); background:var(--coral-dark); }
-  .btn-primary:active{ transform:translateY(0); }
+  .btn-primary:active{ transform:translateY(0) scale(.98); }
+  @media (hover:hover) and (pointer:fine){
+    .btn-primary:hover{ transform:translateY(-2px); background:var(--coral-dark); }
+  }
+
+  .btn-secondary{
+    width:100%; background:#fff; color:var(--coral-dark); border:1.5px solid var(--coral);
+    border-radius:17px; padding:14px; font-size:14.5px; font-weight:700;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .btn-secondary:active{ transform:scale(.98); }
+  @media (hover:hover) and (pointer:fine){
+    .btn-secondary:hover{ background:var(--red-light); }
+  }
+  .btn-secondary[disabled]{ opacity:.55; pointer-events:none; }
 
   /* ---------- quiz ---------- */
   .progress-wrap{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
@@ -106,19 +123,30 @@
   .options{ display:flex; flex-direction:column; gap:9px; }
   .opt-btn{
     text-align:left; background:var(--cream2); border:1.5px solid transparent; border-radius:15px;
-    padding:13px 15px; font-size:14px; font-weight:500; color:var(--ink);
+    padding:13px 15px; font-size:14px; font-weight:500; color:var(--ink); width:100%;
     display:flex; align-items:center; gap:11px; transition:border-color .15s ease, background .15s ease, transform .1s ease;
   }
-  .opt-btn:hover{ border-color:var(--coral); background:#fff; }
   .opt-btn:active{ transform:scale(.98); }
+  @media (hover:hover) and (pointer:fine){
+    .opt-btn:hover{ border-color:var(--coral); background:#fff; }
+  }
+  .opt-btn.selected{ border-color:var(--coral); background:#fff; }
   .opt-dot{ width:15px; height:15px; border-radius:50%; border:2px solid var(--coral); flex:none; }
   .opt-btn[data-val="1"] .opt-dot{ background:transparent; }
   .opt-btn[data-val="2"] .opt-dot{ background:linear-gradient(90deg, var(--coral) 50%, transparent 50%); }
   .opt-btn[data-val="3"] .opt-dot{ background:linear-gradient(90deg, var(--coral) 80%, transparent 50%); }
   .opt-btn[data-val="4"] .opt-dot{ background:var(--coral); }
 
-  .back-link{ display:inline-flex; align-items:center; gap:4px; margin-top:20px; font-size:12px; color:var(--sub); background:none; border:none; padding:4px 0; }
-  .back-link:hover{ color:var(--coral-dark); }
+  .back-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px; width:100%; margin-top:18px;
+    font-size:13.5px; font-weight:700; color:var(--ink); background:var(--cream2); border:1.5px solid var(--line);
+    border-radius:15px; padding:12px; transition:border-color .15s ease, background .15s ease;
+  }
+  .back-btn:active{ transform:scale(.98); }
+  @media (hover:hover) and (pointer:fine){
+    .back-btn:hover{ border-color:var(--coral); color:var(--coral-dark); }
+  }
+  .back-btn[hidden]{ display:none; }
 
   /* ---------- result ---------- */
   .result-hero{ text-align:center; padding-bottom:6px; }
@@ -196,55 +224,59 @@
       <div class="q-index" id="q-index">QUESTION 01</div>
       <p class="q-text" id="q-text"></p>
       <div class="options" id="options"></div>
-      <button class="back-link" id="back-btn" onclick="goBack()">← ひとつ前の質問へ</button>
+      <button class="back-btn" id="back-btn" onclick="goBack()">← ひとつ前の質問に戻る</button>
     </section>
 
     <!-- ============ RESULT ============ -->
     <section class="screen" id="screen-result">
-      <div class="result-hero">
-        <div class="result-icon" id="result-icon"></div>
-        <div class="result-eyebrow">お子さまの声かけタイプは</div>
-        <h2 class="result-name" id="result-name"></h2>
-      </div>
+      <div id="save-target">
+        <div class="result-hero">
+          <div class="result-icon" id="result-icon"></div>
+          <div class="result-eyebrow">お子さまの声かけタイプは</div>
+          <h2 class="result-name" id="result-name"></h2>
+        </div>
 
-      <p class="result-desc" id="result-desc"></p>
-      <p class="result-sub" id="result-sub"></p>
+        <p class="result-desc" id="result-desc"></p>
+        <p class="result-sub" id="result-sub"></p>
 
-      <div class="score-grid" id="score-grid"></div>
+        <div class="score-grid" id="score-grid"></div>
 
-      <div class="section-label"><span class="dot" id="dot-good"></span>こんな声かけが効きます</div>
-      <ul class="tips good" id="tips-good"></ul>
+        <div class="section-label"><span class="dot" id="dot-good"></span>こんな声かけが効きます</div>
+        <ul class="tips good" id="tips-good"></ul>
 
-      <div class="section-label"><span class="dot" id="dot-bad"></span>こんな声かけは避けましょう</div>
-      <ul class="tips bad" id="tips-bad"></ul>
+        <div class="section-label"><span class="dot" id="dot-bad"></span>こんな声かけは避けましょう</div>
+        <ul class="tips bad" id="tips-bad"></ul>
 
-      <div class="persist-wrap">
-        <div class="section-label"><span class="dot" id="dot-persist"></span>トレーニングを続けるための一言アドバイス</div>
-        <div class="persist-cards">
-          <div class="persist-card" id="persist-good">
-            <div class="p-head">
-              <span class="p-title">コツコツ続けやすいお子さまの場合</span>
-              <span class="p-badge">診断結果</span>
+        <div class="persist-wrap">
+          <div class="section-label"><span class="dot" id="dot-persist"></span>トレーニングを続けるための一言アドバイス</div>
+          <div class="persist-cards">
+            <div class="persist-card" id="persist-good">
+              <div class="p-head">
+                <span class="p-title">コツコツ続けやすいお子さまの場合</span>
+                <span class="p-badge">診断結果</span>
+              </div>
+              <div class="p-text" id="persist-good-text"></div>
             </div>
-            <div class="p-text" id="persist-good-text"></div>
-          </div>
-          <div class="persist-card" id="persist-bad">
-            <div class="p-head">
-              <span class="p-title">飽きやすさがあるお子さまの場合</span>
-              <span class="p-badge">診断結果</span>
+            <div class="persist-card" id="persist-bad">
+              <div class="p-head">
+                <span class="p-title">飽きやすさがあるお子さまの場合</span>
+                <span class="p-badge">診断結果</span>
+              </div>
+              <div class="p-text" id="persist-bad-text"></div>
             </div>
-            <div class="p-text" id="persist-bad-text"></div>
           </div>
         </div>
       </div>
 
-      <button class="btn-primary" style="margin-top:26px;" onclick="restartQuiz()">もう一度診断する</button>
+      <button class="btn-secondary" style="margin-top:24px;" id="save-btn" onclick="saveResultImage()">📷 結果を画像で保存する</button>
+      <button class="btn-primary" style="margin-top:10px;" onclick="restartQuiz()">もう一度診断する</button>
       <p class="note">※本診断は院内の問診票をもとにしたセルフチェックです。お子さまの様子は日によっても変わります。ひとつの目安として、日々の声かけにお役立てください。</p>
     </section>
 
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ---------------- data ---------------- */
 const TYPES = {
@@ -392,22 +424,24 @@ function renderQuestion(){
   document.getElementById("q-text").textContent = q.text;
   document.getElementById("progress-count").textContent = (current+1) + " / " + QUESTIONS.length;
   document.getElementById("progress-fill").style.width = ((current/QUESTIONS.length)*100) + "%";
-  document.getElementById("back-btn").style.visibility = current === 0 ? "hidden" : "visible";
+  document.getElementById("back-btn").hidden = current === 0;
 
   const optWrap = document.getElementById("options");
   optWrap.innerHTML = "";
+  const currentAnswer = answers[current];
   SCALE.forEach(opt=>{
     const btn = document.createElement("button");
-    btn.className = "opt-btn";
+    btn.className = "opt-btn" + (currentAnswer === opt.v ? " selected" : "");
     btn.setAttribute("data-val", opt.v);
     btn.innerHTML = `<span class="opt-dot"></span><span>${opt.label}</span>`;
-    btn.onclick = ()=> selectAnswer(opt.v);
+    btn.onclick = ()=> selectAnswer(opt.v, btn);
     optWrap.appendChild(btn);
   });
 }
 
-function selectAnswer(val){
+function selectAnswer(val, btnEl){
   answers[current] = val;
+  if(btnEl) btnEl.blur();
   document.getElementById("progress-fill").style.width = (((current+1)/QUESTIONS.length)*100) + "%";
   if(current < QUESTIONS.length - 1){
     current++;
@@ -499,6 +533,31 @@ function showResult(){
 }
 
 function restartQuiz(){ showScreen("screen-start"); }
+
+async function saveResultImage(){
+  const btn = document.getElementById("save-btn");
+  const target = document.getElementById("save-target");
+  const originalLabel = btn.textContent;
+  btn.textContent = "画像を作成中…";
+  btn.disabled = true;
+  try{
+    const canvas = await html2canvas(target, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true
+    });
+    const link = document.createElement("a");
+    const typeName = document.getElementById("result-name").textContent || "診断結果";
+    link.download = `声かけタイプ診断_${typeName}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }catch(e){
+    alert("画像の保存に失敗しました。スクリーンショットで保存してください。");
+  }finally{
+    btn.textContent = originalLabel;
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
